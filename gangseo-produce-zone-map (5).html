@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>강서점 농산 진열지도 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0ede6;--surface:#fff;--border:#d8d0c0;
+  --dark:#1a1712;--green:#1e6b1e;--glight:#e6f4e6;--gmid:#3a8c3a;
+  --red:#b52b1e;--orange:#b85c00;--muted:#7a7060;--text:#1a1712;
+  --cell:114px;--row:68px;--gap:4px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;overflow-x:hidden;height:100vh;display:flex;flex-direction:column;}
+
+/* HEADER */
+.hdr{background:var(--dark);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--gmid);flex-shrink:0;z-index:300;}
+.hdr h1{font-size:14px;font-weight:900;color:#fff;}.hdr h1 em{color:#7dcd7d;font-style:normal;}
+.hdr-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:#777;margin-top:1px;letter-spacing:1px;}
+.hdr-r{display:flex;gap:6px;align-items:center;}
+.btn{font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;padding:5px 11px;border:none;border-radius:4px;cursor:pointer;white-space:nowrap;}
+.btn-g{background:var(--gmid);color:white;}.btn-g:hover{background:var(--green);}
+.btn-gh{background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.2);}
+.btn-gh:hover{background:rgba(255,255,255,0.2);}
+.badge{font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 9px;border-radius:3px;color:white;font-weight:700;}
+.b-edit{background:var(--orange);}.b-view{background:var(--gmid);}
+
+/* ── WEEK NAVIGATOR ── */
+.nav{background:#fff;border-bottom:2px solid var(--border);flex-shrink:0;z-index:200;}
+
+/* Row 1: current week info + arrows */
+.nav-top{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid var(--border);}
+.nav-wkbadge{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:3px 10px;border-radius:3px;background:var(--dark);color:white;white-space:nowrap;}
+.nav-title{font-size:13px;font-weight:900;flex:1;}
+.nav-dates{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-right:4px;}
+.nav-event{font-size:10px;font-weight:700;padding:2px 9px;border-radius:100px;background:var(--red);color:white;}
+.nav-theme{font-size:11px;color:var(--muted);}
+.nav-arrows{display:flex;gap:5px;margin-left:auto;}
+.nav-arr{font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;padding:4px 11px;background:var(--bg);border:1.5px solid var(--border);border-radius:4px;cursor:pointer;}
+.nav-arr:hover{border-color:var(--gmid);color:var(--green);}
+.nav-arr:disabled{opacity:.35;cursor:not-allowed;}
+.nav-today{font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;padding:4px 11px;background:var(--glight);border:1.5px solid var(--gmid);border-radius:4px;cursor:pointer;color:var(--green);}
+
+/* Row 2: Month tabs */
+.nav-months{display:flex;overflow-x:auto;padding:0 10px;border-bottom:1px solid var(--border);scrollbar-width:none;}
+.nav-months::-webkit-scrollbar{display:none;}
+.mo-tab{font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:700;padding:7px 13px;border:none;background:none;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap;transition:all .12s;position:relative;}
+.mo-tab:hover{color:var(--text);}
+.mo-tab.active{color:var(--green);border-bottom-color:var(--gmid);}
+.mo-tab .mo-event-dot{position:absolute;top:5px;right:6px;width:5px;height:5px;border-radius:50%;background:var(--red);}
+
+/* Row 3: Week buttons for selected month */
+.nav-weeks{display:flex;align-items:center;gap:6px;padding:7px 14px;min-height:42px;}
+.wk-btn{
+  font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;
+  padding:5px 13px;border:1.5px solid var(--border);border-radius:5px;
+  cursor:pointer;background:white;color:var(--muted);
+  transition:all .12s;white-space:nowrap;
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+}
+.wk-btn:hover{border-color:var(--gmid);color:var(--green);background:var(--glight);}
+.wk-btn.active{background:var(--dark);color:white;border-color:var(--dark);}
+.wk-btn.has-event{border-color:var(--red);}
+.wk-btn.has-event .wk-btn-sub{color:var(--red);}
+.wk-btn.active.has-event{background:var(--red);border-color:var(--red);}
+.wk-btn.confirmed{background:var(--glight);border-color:var(--gmid);color:var(--green);}
+.wk-btn.active.confirmed{background:var(--gmid);color:white;border-color:var(--gmid);}
+.wk-btn-label{font-size:11px;font-weight:700;}
+.wk-btn-sub{font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+/* TOOLBAR */
+.toolbar{background:#fafaf8;border-bottom:1px solid var(--border);padding:5px 14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0;}
+.tbl{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-right:2px;}
+.tbb{font-family:'Noto Sans KR',sans-serif;font-size:10px;font-weight:700;padding:4px 10px;border:1.5px solid var(--border);border-radius:4px;cursor:pointer;background:white;transition:all .1s;}
+.tbb:hover{border-color:var(--gmid);color:var(--green);background:var(--glight);}
+.tsep{width:1px;height:18px;background:var(--border);margin:0 2px;}
+.thint{font-size:10px;color:var(--muted);margin-left:auto;}
+
+/* MAIN */
+.main-wrap{display:flex;flex:1;overflow:hidden;}
+
+/* CANVAS */
+.canvas-area{flex:1;overflow:auto;padding:14px;background:var(--bg);}
+.gc{position:relative;background:#fff;border:2px solid #333;border-radius:6px;padding:8px;}
+.drop-cell{position:absolute;border:1.5px dashed transparent;border-radius:4px;z-index:1;transition:background .1s;}
+.drop-cell.over{border-color:var(--gmid);background:rgba(58,140,58,0.08);}
+
+/* ZONE BLOCK */
+.zb{position:absolute;border-radius:5px;border:2px solid;cursor:grab;user-select:none;z-index:10;display:flex;flex-direction:column;overflow:hidden;transition:box-shadow .15s;}
+.zb:active{cursor:grabbing;}
+.zb.dragging{opacity:.72;transform:scale(1.03);box-shadow:0 8px 28px rgba(0,0,0,.22);z-index:100;}
+.zb.sel{box-shadow:0 0 0 3px rgba(58,140,58,.6)!important;z-index:50;}
+.zb.hl{animation:zbhl 1.8s ease-out forwards;}
+@keyframes zbhl{0%{box-shadow:0 0 0 4px #fbbf24,0 0 30px rgba(251,191,36,.7);}100%{box-shadow:none;}}
+.zi{padding:6px 7px 5px;flex:1;display:flex;flex-direction:column;gap:2px;position:relative;overflow:hidden;}
+.znum{position:absolute;top:2px;right:5px;font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:900;opacity:.09;}
+.zpri{position:absolute;top:4px;left:5px;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;color:white;}
+.p1{background:var(--green);}.p2{background:var(--orange);}.pe{background:var(--red);}.pf{background:#92400e;}
+.ztype{font-size:8px;color:#bbb;margin-top:12px;}
+.zname{font-size:11px;font-weight:900;line-height:1.2;}
+.zprod{font-size:11px;font-weight:700;color:var(--green);margin-top:2px;line-height:1.3;}
+.zprod.changed{color:var(--orange);}
+.zprod.isnew{color:#d97706;}
+.znote{font-size:8px;color:var(--muted);line-height:1.3;}
+.zstatus{position:absolute;bottom:3px;right:4px;font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;}
+.season-badge{display:inline-block;font-size:8px;font-weight:700;padding:2px 6px;border-radius:3px;margin-bottom:3px;color:white;letter-spacing:.3px;}
+.sb-spring{background:#16a34a;} .sb-summer{background:#dc2626;} .sb-fall{background:#d97706;} .sb-winter{background:#2563eb;} .sb-event{background:#7c3aed;} .sb-fix{background:#92400e;}
+.zprod.season-hot{color:#dc2626;font-size:12px;}
+.zprod.season-main{color:#16a34a;font-size:12px;}
+.zs-conf{background:var(--glight);color:var(--green);}
+.zs-plan{background:#fff3e0;color:var(--orange);}
+.zs-tbd{background:#f3f4f6;color:#9ca3af;}
+.ent-block{background:linear-gradient(135deg,#f0fdf4,#dcfce7)!important;border:2.5px dashed var(--gmid)!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;font-size:14px;font-weight:900;color:var(--green);gap:2px;}
+.ent-sub{font-size:10px;font-weight:400;}
+.rh{position:absolute;background:rgba(0,0,0,.12);border-radius:2px;z-index:20;}
+.rh-e{right:2px;top:50%;transform:translateY(-50%);width:5px;height:20px;cursor:e-resize;}
+.rh-s{bottom:2px;left:50%;transform:translateX(-50%);height:5px;width:20px;cursor:s-resize;}
+.rh-se{right:2px;bottom:2px;width:9px;height:9px;cursor:se-resize;border-radius:2px;}
+
+/* COLORS */
+.cn1{background:#fff0f0;border-color:#f87171;}.cn2{background:#fff5e6;border-color:#fb923c;}
+.cn3{background:#fffbe6;border-color:#fbbf24;}.cn4{background:#f0fff4;border-color:#6ee7b7;}
+.cn5{background:#fef2f2;border-color:#fca5a5;}.cn6{background:#eff6ff;border-color:#93c5fd;}
+.cn7{background:#f5f3ff;border-color:#c4b5fd;}.cw{background:#fafaf5;border-color:#d4d4aa;}
+.cc{background:#e0f2fe;border-color:#7dd3fc;}.cf{background:#fffde7;border-color:#fde047;}
+
+/* RIGHT PANEL */
+.rpanel{width:250px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;padding:13px;display:flex;flex-direction:column;}
+.rpemp{text-align:center;padding:24px 10px;color:var(--muted);font-size:12px;line-height:1.7;}
+.rpemp .ico{font-size:24px;display:block;margin-bottom:8px;}
+.rpl{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin:10px 0 4px;}
+.rpi{width:100%;font-family:'Noto Sans KR',sans-serif;font-size:12px;padding:6px 9px;border:1.5px solid var(--border);border-radius:5px;background:var(--bg);}
+.rpi:focus{outline:none;border-color:var(--gmid);}
+.rps{width:100%;font-family:'Noto Sans KR',sans-serif;font-size:12px;padding:6px 9px;border:1.5px solid var(--border);border-radius:5px;background:var(--bg);cursor:pointer;}
+.color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:2px;}
+.col-opt{height:24px;border-radius:4px;border:2px solid transparent;cursor:pointer;transition:all .1s;}
+.col-opt:hover{transform:scale(1.1);}.col-opt.sel{border-color:var(--dark)!important;transform:scale(1.12);}
+.sz-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.sz-f{display:flex;flex-direction:column;gap:2px;}
+.sz-f label{font-size:10px;color:var(--muted);font-weight:600;}
+.sz-i{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:5px 7px;border:1.5px solid var(--border);border-radius:4px;background:var(--bg);width:100%;text-align:center;}
+.sz-i:focus{outline:none;border-color:var(--gmid);}
+.rpbtn{width:100%;font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:700;padding:8px;border:none;border-radius:5px;cursor:pointer;margin-top:5px;}
+.rpbtn-g{background:var(--gmid);color:white;}.rpbtn-g:hover{background:var(--green);}
+.rpbtn-r{background:#fee2e2;color:var(--red);border:1px solid #fca5a5!important;}.rpbtn-r:hover{background:var(--red);color:white;}
+.tdiv{height:1px;background:var(--border);margin:10px 0;}
+
+/* weekly product edit box */
+.wk-edit-box{background:var(--bg);border:1.5px solid var(--border);border-radius:6px;padding:9px;margin-bottom:8px;}
+.wk-edit-box .box-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;}
+.wk-inp-row{display:flex;gap:4px;}
+.wk-inp-row input{flex:1;font-family:'Noto Sans KR',sans-serif;font-size:12px;padding:5px 8px;border:1.5px solid var(--border);border-radius:4px;background:white;}
+.wk-inp-row input:focus{outline:none;border-color:var(--gmid);}
+.wk-inp-row select{font-family:'Noto Sans KR',sans-serif;font-size:11px;padding:5px 6px;border:1.5px solid var(--border);border-radius:4px;background:white;}
+.wk-apply{width:100%;margin-top:6px;font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;padding:6px;background:var(--gmid);color:white;border:none;border-radius:4px;cursor:pointer;}
+.wk-apply:hover{background:var(--green);}
+
+/* AI PANEL */
+.ai-float{position:fixed;bottom:0;left:50%;transform:translateX(-50%);background:#111;color:#7dcd7d;border:2px solid var(--gmid);border-bottom:none;font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:700;padding:6px 22px;border-radius:8px 8px 0 0;cursor:pointer;z-index:149;white-space:nowrap;}
+.ai-float:hover{background:var(--gmid);color:white;}
+.ai-float.hidden{display:none;}
+.ai-panel{position:fixed;bottom:0;left:0;right:0;background:#0f0f0f;color:white;z-index:150;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);border-top:3px solid var(--gmid);}
+.ai-panel.open{transform:translateY(0);}
+.ai-head{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.07);}
+.ai-head h3{font-size:13px;font-weight:900;color:#7dcd7d;}
+.ai-inp-row{flex:1;display:flex;gap:7px;align-items:center;margin:0 10px;}
+.ai-inp{flex:1;font-family:'Noto Sans KR',sans-serif;font-size:13px;padding:8px 13px;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.18);border-radius:7px;color:white;}
+.ai-inp::placeholder{color:rgba(255,255,255,.3);}
+.ai-inp:focus{outline:none;border-color:var(--gmid);}
+.ai-go{font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:700;padding:8px 18px;background:var(--gmid);color:white;border:none;border-radius:6px;cursor:pointer;}
+.ai-go:hover{background:var(--green);}
+.ai-go:disabled{background:#333;cursor:not-allowed;color:#555;}
+.ai-x{background:none;border:none;color:rgba(255,255,255,.35);font-size:20px;cursor:pointer;padding:2px 8px;}
+.ai-x:hover{color:white;}
+.ai-body{padding:10px 16px 14px;overflow-y:auto;max-height:220px;}
+.ai-idle{font-size:11px;color:rgba(255,255,255,.3);line-height:1.7;}
+.ai-idle strong{color:rgba(255,255,255,.6);}
+.ai-loading{display:flex;align-items:center;gap:7px;font-size:11px;color:rgba(255,255,255,.4);}
+.ai-dot{width:6px;height:6px;background:var(--gmid);border-radius:50%;animation:dp 1.1s infinite;}
+.ai-dot:nth-child(2){animation-delay:.18s;}.ai-dot:nth-child(3){animation-delay:.36s;}
+@keyframes dp{0%,100%{opacity:.3;transform:scale(.8);}50%{opacity:1;transform:scale(1.2);}}
+.ai-cards{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.ai-card{flex:1;min-width:180px;max-width:280px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:8px;padding:11px 12px;cursor:pointer;transition:all .15s;position:relative;}
+.ai-card:hover{background:rgba(58,140,58,.18);border-color:var(--gmid);}
+.ai-card.rank1{border-color:rgba(251,191,36,.6);background:rgba(251,191,36,.07);}
+.ai-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;margin-bottom:5px;}
+.ab1{background:#fbbf24;color:#000;}.ab2{background:var(--gmid);color:white;}.ab3{background:#6366f1;color:white;}
+.ai-card-zone{font-size:13px;font-weight:900;color:white;line-height:1.2;margin-bottom:3px;}
+.ai-card-why{font-size:11px;color:rgba(255,255,255,.55);line-height:1.4;}
+.ai-card-strat{font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;line-height:1.4;}
+.ai-apply{width:100%;font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;padding:5px 0;background:var(--gmid);color:white;border:none;border-radius:4px;cursor:pointer;margin-top:7px;}
+.ai-apply:hover{background:var(--green);}
+.ai-hist{margin-top:8px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.ai-hl{font-size:10px;color:rgba(255,255,255,.25);}
+.ai-chip{font-size:10px;padding:2px 8px;border:1px solid rgba(255,255,255,.12);border-radius:100px;cursor:pointer;color:rgba(255,255,255,.4);background:none;font-family:'Noto Sans KR',sans-serif;}
+.ai-chip:hover{border-color:var(--gmid);color:#7dcd7d;}
+
+/* TOAST */
+.toast{position:fixed;bottom:54px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--dark);color:white;padding:7px 14px;border-radius:6px;font-size:11px;font-weight:600;z-index:999;transition:transform .25s ease;border-left:4px solid var(--gmid);white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:white;border-radius:10px;padding:20px;width:320px;max-width:90vw;}
+.modal h3{font-size:13px;font-weight:900;margin-bottom:12px;}
+.mf{margin-bottom:9px;}.mf label{font-size:10px;font-weight:700;color:var(--muted);display:block;margin-bottom:3px;}
+.mf input,.mf select{width:100%;font-family:'Noto Sans KR',sans-serif;font-size:12px;padding:6px 9px;border:1.5px solid var(--border);border-radius:4px;background:var(--bg);}
+.mbtns{display:flex;gap:7px;margin-top:12px;}
+.mbtns button{flex:1;font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:700;padding:8px;border:none;border-radius:5px;cursor:pointer;}
+.mok{background:var(--gmid);color:white;}.mcancel{background:var(--bg);color:var(--muted);border:1px solid var(--border)!important;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <h1>🌿 강서점 <em>농산 진열지도 2026</em></h1>
+    <div class="hdr-sub">52-WEEK SEASONAL PLAN · LAYOUT EDITOR · AI RECOMMEND</div>
+  </div>
+  <div class="hdr-r">
+    <span class="badge b-edit" id="modeTag">✏️ 편집</span>
+    <button class="btn btn-gh" onclick="toggleMode()">👁 보기</button>
+    <button class="btn btn-gh" onclick="openAddModal()">＋ 구역</button>
+    <button class="btn btn-gh" onclick="resetLayout()">↺ 초기화</button>
+    <button class="btn btn-gh" onclick="document.getElementById('jsonLoadInput').click()">📂 JSON 불러오기</button>
+    <input type="file" id="jsonLoadInput" accept=".json" style="display:none" onchange="loadJSON(this)"/>
+    <button class="btn btn-g" onclick="saveAll()">💾 저장</button>
+  </div>
+</div>
+
+<!-- WEEK NAVIGATOR -->
+<div class="nav">
+  <!-- Row 1: Current week info -->
+  <div class="nav-top">
+    <span class="nav-wkbadge" id="navBadge">W01</span>
+    <span class="nav-title" id="navTitle">1월 1주</span>
+    <span class="nav-dates" id="navDates"></span>
+    <span class="nav-event" id="navEvent" style="display:none"></span>
+    <span class="nav-theme" id="navTheme"></span>
+    <div class="nav-arrows">
+      <button class="nav-arr" onclick="prevWeek()" id="btnPrev">◀</button>
+      <button class="nav-today" onclick="goToday()">오늘</button>
+      <button class="nav-arr" onclick="nextWeek()" id="btnNext">▶</button>
+    </div>
+  </div>
+  <!-- Row 2: Month tabs -->
+  <div class="nav-months" id="navMonths"></div>
+  <!-- Row 3: Week buttons for selected month -->
+  <div class="nav-weeks" id="navWeeks"></div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar" id="toolbar">
+  <span class="tbl">크기</span>
+  <button class="tbb" onclick="resizeSel(-1,0)">◀좁게</button>
+  <button class="tbb" onclick="resizeSel(1,0)">넓게▶</button>
+  <button class="tbb" onclick="resizeSel(0,-1)">▲낮게</button>
+  <button class="tbb" onclick="resizeSel(0,1)">높게▼</button>
+  <div class="tsep"></div>
+  <span class="tbl">이동</span>
+  <button class="tbb" onclick="moveSel(-1,0)">◀</button>
+  <button class="tbb" onclick="moveSel(1,0)">▶</button>
+  <button class="tbb" onclick="moveSel(0,-1)">▲</button>
+  <button class="tbb" onclick="moveSel(0,1)">▼</button>
+  <div class="tsep"></div>
+  <button class="tbb" style="color:var(--red);border-color:#fca5a5" onclick="deleteSel()">🗑 삭제</button>
+  <span class="thint" id="tbHint">구역 클릭 → 선택 / 드래그 → 이동 / 우측 패널 → 상품 편집</span>
+</div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+  <div class="canvas-area">
+    <div class="gc" id="gc"></div>
+  </div>
+  <!-- RIGHT PANEL -->
+  <div class="rpanel">
+    <div class="rpemp" id="rpEmp"><span class="ico">👆</span>구역 클릭 시<br>여기서 편집</div>
+    <div id="rpEdit" style="display:none">
+
+      <!-- ① 구역 제목 — 클릭해서 바로 수정 -->
+      <div style="margin-bottom:11px">
+        <div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">구역 제목 (굵은 글씨)</div>
+        <input class="rpi" id="rpTitle"
+          style="font-size:15px;font-weight:900;padding:7px 10px;border:2px solid var(--gmid);border-radius:6px;"
+          oninput="upd('name',this.value)"
+          placeholder="구역 이름 직접 입력"/>
+      </div>
+
+      <!-- ② 이번 주 상품 편집 -->
+      <div class="wk-edit-box">
+        <div class="box-title" id="wkProdLabel">📅 이번 주 상품</div>
+        <div class="wk-inp-row">
+          <input id="wkProdInp" placeholder="이번 주 배치 상품"/>
+          <select id="wkStatus">
+            <option value="planned">예정</option>
+            <option value="confirmed">확정</option>
+            <option value="tbd">미정</option>
+          </select>
+        </div>
+        <input class="rpi" id="wkNoteInp" placeholder="메모 (POP, 온도 조건 등)" style="margin-top:5px;font-size:11px;"/>
+        <button class="wk-apply" onclick="applyWkProd()">✅ 이 주차에 적용</button>
+      </div>
+
+      <!-- ③ 기본 상품 -->
+      <div class="rpl">기본 상품 <span style="font-weight:400;color:var(--muted)">(전주 공통)</span></div>
+      <input class="rpi" id="eP" oninput="upd('prod',this.value)" placeholder="예: 🍓 딸기·블루베리"/>
+
+      <!-- ④ 우선순위 — select + 직접입력 -->
+      <div class="rpl">우선순위</div>
+      <div style="display:flex;gap:5px;align-items:center">
+        <select class="rps" id="ePr" style="flex:1" onchange="onPriChange(this.value)">
+          <option value="">없음</option>
+          <option value="p1">★ 1순위 (핵심)</option>
+          <option value="p2">2순위</option>
+          <option value="pe">이벤트</option>
+          <option value="pf">★ 고정</option>
+          <option value="__custom__">✏️ 직접 입력...</option>
+        </select>
+      </div>
+      <div id="priCustomWrap" style="display:none;margin-top:5px">
+        <input class="rpi" id="priCustom" placeholder="우선순위 직접 입력 (예: 시즌 한정)"
+          oninput="upd('priLabel',this.value)"
+          style="font-size:12px"/>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">입력 후 Enter → 구역에 표시됩니다</div>
+      </div>
+
+      <!-- ⑤ 설비 유형 — select + 직접입력 -->
+      <div class="rpl">설비 유형</div>
+      <div style="display:flex;gap:5px;align-items:center">
+        <select class="rps" id="eTy" style="flex:1" onchange="onTypeChange(this.value)">
+          <option value="오픈냉장">오픈냉장</option>
+          <option value="냉장쇼케이스">냉장쇼케이스</option>
+          <option value="냉동">냉동</option>
+          <option value="아일랜드">아일랜드(상온)</option>
+          <option value="벽부">벽부</option>
+          <option value="평대">평대</option>
+          <option value="입구옆고정">입구 옆 고정</option>
+          <option value="수직선반">수직선반</option>
+          <option value="냉장평대">냉장평대</option>
+          <option value="상온평대">상온평대</option>
+          <option value="__custom__">✏️ 직접 입력...</option>
+        </select>
+      </div>
+      <div id="tyCustomWrap" style="display:none;margin-top:5px">
+        <input class="rpi" id="tyCustom" placeholder="설비 유형 직접 입력 (예: 대형 냉동고)"
+          oninput="upd('type',this.value)"
+          style="font-size:12px"/>
+      </div>
+
+      <!-- ⑥ 메모 -->
+      <div class="rpl">메모 / 특이사항</div>
+      <input class="rpi" id="eNo" oninput="upd('note',this.value)" placeholder="입고 조건, 온도, POP 여부 등"/>
+
+      <!-- ⑦ 색상 -->
+      <div class="rpl">구역 색상</div>
+      <div class="color-grid" id="colorGrid"></div>
+
+      <!-- ⑧ 크기 -->
+      <div class="rpl">크기 <span style="font-weight:400;color:var(--muted)">(그리드 단위)</span></div>
+      <div class="sz-grid">
+        <div class="sz-f"><label>가로(열)</label><input class="sz-i" type="number" min="1" max="9" id="eCols" onchange="upd('cols',+this.value)"/></div>
+        <div class="sz-f"><label>세로(행)</label><input class="sz-i" type="number" min="1" max="7" id="eRows" onchange="upd('rows',+this.value)"/></div>
+      </div>
+
+      <!-- ⑨ 구역 ID (식별자) -->
+      <div class="rpl" style="margin-top:8px">구역 ID <span style="font-weight:400;color:var(--muted)">(시스템 식별자)</span></div>
+      <input class="rpi" id="eId" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)"
+        oninput="updId(this.value)" placeholder="영문/숫자 권장"/>
+
+      <div class="tdiv"></div>
+      <button class="rpbtn rpbtn-r" onclick="deleteSel()">🗑 이 구역 삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI FLOAT BUTTON -->
+<button class="ai-float" id="aiFloat" onclick="openAI()">✨ AI 신상품 배치 추천</button>
+
+<!-- AI PANEL -->
+<div class="ai-panel" id="aiPanel">
+  <div class="ai-head">
+    <h3>🤖 AI 신상품 배치 추천</h3>
+    <div class="ai-inp-row">
+      <input class="ai-inp" id="aiInp" placeholder="신상품명 입력 예: 제주 한라봉 2kg, 프리미엄 딸기, 수입 망고..." onkeydown="if(event.key==='Enter')doAsk()"/>
+      <button class="ai-go" id="aiGo" onclick="doAsk()">추천받기 ✨</button>
+    </div>
+    <button class="ai-x" onclick="closeAI()">✕</button>
+  </div>
+  <div class="ai-body" id="aiBody">
+    <div class="ai-idle">신상품 이름 입력 후 <strong>추천받기</strong> → 현재 도면 분석 → <strong>최적 자리 3곳</strong> 추천</div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-bg" id="addModal">
+  <div class="modal">
+    <h3>➕ 새 구역 추가</h3>
+    <div class="mf"><label>구역명 *</label><input id="mN" placeholder="예: 한끼채소"/></div>
+    <div class="mf"><label>배치 상품</label><input id="mP" placeholder="예: 🥬 한끼채소"/></div>
+    <div class="mf"><label>설비 유형</label><select id="mT"><option value="오픈냉장">오픈냉장</option><option value="냉장쇼케이스">냉장쇼케이스</option><option value="아일랜드">아일랜드(상온)</option><option value="벽부">벽부</option><option value="평대">평대</option></select></div>
+    <div class="mf"><label>우선순위</label><select id="mPr"><option value="">없음</option><option value="p1">★ 1순위</option><option value="p2">2순위</option><option value="pe">이벤트</option><option value="pf">고정</option></select></div>
+    <div class="mbtns"><button class="mcancel" onclick="closeModal()">취소</button><button class="mok" onclick="addZone()">추가</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  2026년 실제 주차 데이터
+//  (목요일 귀속 방식 — ISO 8601 기준)
+//  1월: W01~W05 (5주)
+//  2월: W06~W09 (4주)
+//  3월: W10~W13 (4주)
+//  4월: W14~W18 (5주)
+//  5월: W19~W22 (4주)
+//  6월: W23~W26 (4주)
+//  7월: W27~W31 (5주)
+//  8월: W32~W35 (4주)
+//  9월: W36~W39 (4주)
+// 10월: W40~W44 (5주)
+// 11월: W45~W48 (4주)
+// 12월: W49~W53 (5주)
+// ═══════════════════════════════════════════════════════
+
+const MONTHS = [
+  {idx:0, label:'1월', name:'1월'},
+  {idx:1, label:'2월', name:'2월'},
+  {idx:2, label:'3월', name:'3월'},
+  {idx:3, label:'4월', name:'4월'},
+  {idx:4, label:'5월', name:'5월'},
+  {idx:5, label:'6월', name:'6월'},
+  {idx:6, label:'7월', name:'7월'},
+  {idx:7, label:'8월', name:'8월'},
+  {idx:8, label:'9월', name:'9월'},
+  {idx:9, label:'10월', name:'10월'},
+  {idx:10, label:'11월', name:'11월'},
+  {idx:11, label:'12월', name:'12월'},
+];
+
+// week: {id, month(0-based), weekOfMonth(1-based), label, dates, event, theme, overrides}
+const WEEKS = [
+  // ══════════════════════════════════════════
+  // 1월 — 딸기↑ 만감류 피크 / 설 명절
+  // 실적: 청과6785 딸기1436 사과967 감귤695 토마토618 바나나497
+  // ══════════════════════════════════════════
+  {id:'W01',mo:0,wom:1,label:'1월 1주',dates:'12/30~1/5',  event:'🎉 신년',       theme:'신년 기획·딸기 성장기',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기+블루베리 (성장기)',      status:'planned', note:'연초 물량 증가 시작'},
+     'z1772002422913': {prod:'🍊 한라봉·천혜향·레드향 벌크 피크', status:'confirmed'},
+     '3감귤':   {prod:'🍊 제주감귤 메인',      status:'confirmed'},
+     '4사과배': {prod:'🍎 사과·배',            status:'confirmed'},
+     '6수입과일':{prod:'🍊 오렌지·자몽',       status:'planned'},
+   }},
+  {id:'W02',mo:0,wom:2,label:'1월 2주',dates:'1/6~1/12',   event:'',             theme:'딸기 성장·만감류 피크',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기',               status:'planned'},
+     'z1772002422913': {prod:'🍊 한라봉·천혜향',      status:'confirmed'},
+     '3감귤':   {prod:'🍊 제주감귤',           status:'confirmed'},
+     '4사과배': {prod:'🍎 사과·배',            status:'confirmed'},
+     '6수입과일':{prod:'🍊 오렌지',            status:'planned'},
+   }},
+  {id:'W03',mo:0,wom:3,label:'1월 3주',dates:'1/13~1/19',  event:'🎊 설 준비',   theme:'설 명절 기획전 시작',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기 ★설 기획',     status:'confirmed'},
+     'z1772002422913': {prod:'🍊 만감류 선물세트',    status:'confirmed'},
+     '3감귤':   {prod:'🍊 감귤 선물',          status:'confirmed'},
+     '4사과배': {prod:'🍎 사과·배 선물세트',   status:'confirmed'},
+     '견과':    {prod:'🥜 견과 명절선물세트',  status:'confirmed'},
+     '양곡':    {prod:'🌾 양곡 선물세트',      status:'confirmed'},
+   }},
+  {id:'W04',mo:0,wom:4,label:'1월 4주',dates:'1/20~1/26',  event:'🎊 설 연휴',   theme:'설 명절 피크',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기 ★설 피크',     status:'confirmed'},
+     'z1772002422913': {prod:'🍊 만감류 선물세트 ★', status:'confirmed'},
+     '3감귤':   {prod:'🍊 감귤 선물 ★',       status:'confirmed'},
+     '4사과배': {prod:'🍎 사과·배 선물 ★',    status:'confirmed'},
+     '견과':    {prod:'🥜 견과 선물세트 ★',   status:'confirmed'},
+     '양곡':    {prod:'🌾 양곡 선물세트 ★',   status:'confirmed'},
+   }},
+  {id:'W05',mo:0,wom:5,label:'1월 5주',dates:'1/27~2/2',   event:'',             theme:'명절 후 정리·딸기 집중',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기',               status:'planned'},
+     'z1772002422913': {prod:'🍊 한라봉·천혜향',      status:'planned'},
+     '3감귤':   {prod:'🍊 제주감귤',           status:'planned'},
+   }},
+
+  // ══════════════════════════════════════════
+  // 2월 — 딸기 피크 / 만감류 피크 / 밸런타인
+  // 실적: 청과6266 딸기1295 사과720 토마토558 선물세트507 감귤423
+  // ══════════════════════════════════════════
+  {id:'W06',mo:1,wom:1,label:'2월 1주',dates:'2/3~2/9',    event:'',             theme:'딸기 피크 시작',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기·블루베리 ↑',   status:'confirmed'},
+     'z1772002422913': {prod:'🍊 한라봉·천혜향·래드향',status:'confirmed'},
+     '3감귤':   {prod:'🍊 제주감귤',           status:'confirmed'},
+     '4사과배': {prod:'🍎 사과',               status:'confirmed'},
+     '6수입과일':{prod:'🍊 오렌지·자몽',       status:'planned'},
+   }},
+  {id:'W07',mo:1,wom:2,label:'2월 2주',dates:'2/10~2/16',  event:'💝 밸런타인',  theme:'밸런타인·딸기 기획',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기 ★밸런타인',    status:'confirmed', note:'프리미엄 패키지 병행'},
+     'z1772002422913': {prod:'🍊 만감류',             status:'confirmed'},
+     '냉동과일':{prod:'🫐 냉동 베리류 선물',   status:'planned'},
+     '6수입과일':{prod:'🍓 딸기 선물박스',     status:'planned'},
+   }},
+  {id:'W08',mo:1,wom:3,label:'2월 3주',dates:'2/17~2/23',  event:'🎑 정월대보름',theme:'정월대보름 이벤트',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기',               status:'confirmed'},
+     'z1772002422913': {prod:'🍊 한라봉·천혜향',      status:'confirmed'},
+     '3감귤':   {prod:'🍊 제주감귤',           status:'planned'},
+     '견과':    {prod:'🥜 견과류 ★보름 이벤트',status:'confirmed', note:'입구 임시 승격'},
+     '양곡':    {prod:'🌾 오곡·잡곡 ★보름',   status:'confirmed'},
+   }},
+  {id:'W09',mo:1,wom:4,label:'2월 4주',dates:'2/24~3/2',   event:'',             theme:'딸기 피크 유지',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기·블루베리 ★피크',status:'confirmed'},
+     'z1772002422913': {prod:'🍊 만감류벌크 (한라봉·천혜향·래드향) ★피크',status:'confirmed'},
+     '3감귤':   {prod:'🍊 제주감귤 (시즌 후반)',status:'planned'},
+     '6수입과일':{prod:'🍊 오렌지·기타 수입',  status:'planned'},
+   }},
+
+  // ══════════════════════════════════════════
+  // 3월 — 딸기 피크 마무리 / 만감류 마감 / 봄 준비
+  // 실적: 청과7100 딸기1225 오렌지1182 사과972 토마토836 참외524
+  // → 오렌지 1182로 2월보다 오히려 증가! 2번 자리 오렌지 강화
+  // ══════════════════════════════════════════
+  {id:'W10',mo:2,wom:1,label:'3월 1주',dates:'3/3~3/9',    event:'🌸 봄 시작',   theme:'딸기 피크 마무리',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기·블루베리 ★',   status:'confirmed'},
+     'z1772002422913': {prod:'🍊 한라봉·오렌지',      status:'confirmed'},
+     '3감귤':   {prod:'🍊 제주감귤 (마무리)',  status:'planned'},
+     '6수입과일':{prod:'🍊 오렌지 ★강화',     status:'confirmed', note:'3월 오렌지 실적 1182'},
+   }},
+  {id:'W11',mo:2,wom:2,label:'3월 2주',dates:'3/10~3/16',  event:'',             theme:'딸기→봄 전환 준비',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기 (피크 마감)',   status:'planned'},
+     'z1772002422913': {prod:'🍊 오렌지·한라봉',      status:'planned'},
+     '3감귤':   {prod:'🍊 감귤 (축소) / 🍅 토마토 확대', status:'planned', note:'감귤 시즌 마감'},
+     '6수입과일':{prod:'🍊 오렌지',            status:'planned'},
+   }},
+  {id:'W12',mo:2,wom:3,label:'3월 3주',dates:'3/17~3/23',  event:'',             theme:'봄과일 전환 시작',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기+🍈 참외 준비',  status:'planned'},
+     'z1772002422913': {prod:'🍊 오렌지',             status:'planned', note:'만감류→오렌지 전환'},
+     '3감귤':   {prod:'🍅 토마토·방울토마토',  status:'planned', note:'감귤 축소 → 토마토 확대'},
+     '4사과배': {prod:'🍎 봄사과',             status:'planned'},
+   }},
+  {id:'W13',mo:2,wom:4,label:'3월 4주',dates:'3/24~3/30',  event:'',             theme:'참외 입고 준비',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기 (마무리)',      status:'planned'},
+     'z1772002422913': {prod:'🍊 오렌지',             status:'planned'},
+     '3감귤':   {prod:'🍅 토마토·방울토마토',  status:'planned'},
+     '6수입과일':{prod:'🍈 참외 (초도 준비)',  status:'tbd', note:'입고일 확인 필요'},
+   }},
+
+  // ══════════════════════════════════════════
+  // 4월 — 참외 메인 / 오렌지 유지 / 딸기 마감
+  // 실적: 청과6894 참외931 토마토929 오렌지841 딸기809 사과790
+  // → 참외가 1번, 오렌지 2번 자리
+  // ══════════════════════════════════════════
+  {id:'W14',mo:3,wom:1,label:'4월 1주',dates:'3/31~4/6',   event:'🌸 봄나들이',  theme:'참외 메인 전환',
+   overrides:{
+     'z1772002356730':   {prod:'🍈 참외 ★메인 전환',   status:'planned', note:'딸기→참외 완전 전환'},
+     'z1772002422913': {prod:'🍊 오렌지',             status:'planned'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '4사과배': {prod:'🍎 봄사과',             status:'planned'},
+     '6수입과일':{prod:'🍊 오렌지·수입망고',  status:'tbd'},
+   }},
+  {id:'W15',mo:3,wom:2,label:'4월 2주',dates:'4/7~4/13',   event:'',             theme:'참외 피크 시작',
+   overrides:{
+     'z1772002356730':   {prod:'🍈 참외 ★피크',        status:'planned'},
+     'z1772002422913': {prod:'🍊 오렌지',             status:'planned'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '6수입과일':{prod:'🥭 수입 망고 (TBD)',   status:'tbd'},
+   }},
+  {id:'W16',mo:3,wom:3,label:'4월 3주',dates:'4/14~4/20',  event:'',             theme:'참외 유지',
+   overrides:{
+     'z1772002356730':   {prod:'🍈 참외',               status:'planned'},
+     'z1772002422913': {prod:'🍊 오렌지',             status:'planned'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+   }},
+  {id:'W17',mo:3,wom:4,label:'4월 4주',dates:'4/21~4/27',  event:'',             theme:'참외·봄과일 강화',
+   overrides:{
+     'z1772002356730':   {prod:'🍈 참외',               status:'planned'},
+     'z1772002422913': {prod:'🍊 오렌지',             status:'planned'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '4사과배': {prod:'🍎 봄사과·딸기 소량',  status:'planned'},
+   }},
+
+  // ══════════════════════════════════════════
+  // 5월 — 참외+수박 병행 / 키위 강세 / 어버이날
+  // 실적: 청과7230 키위1302 토마토994 참외954 사과796 바나나586
+  // → 키위 1302로 최강! 2번 자리 키위, 1번 참외
+  // ══════════════════════════════════════════
+  {id:'W18',mo:4,wom:1,label:'5월 1주',dates:'4/28~5/4',   event:'',             theme:'키위 시즌 피크',
+   overrides:{
+     'z1772002356730':   {prod:'🍈 참외',               status:'planned'},
+     'z1772002422913': {prod:'🥝 키위 ★피크',         status:'planned', note:'5월 키위 실적 1302 최강'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '6수입과일':{prod:'🥭 망고·파인애플',     status:'tbd'},
+   }},
+  {id:'W19',mo:4,wom:2,label:'5월 2주',dates:'5/5~5/11',   event:'🌹 어버이날', theme:'어버이날 선물 기획',
+   overrides:{
+     'z1772002356730':   {prod:'🍈 참외·🍓 딸기 선물',  status:'planned'},
+     'z1772002422913': {prod:'🥝 키위',               status:'planned'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '견과':    {prod:'🥜 견과 어버이날 선물', status:'planned'},
+     '6수입과일':{prod:'🍓 딸기 선물박스',     status:'planned'},
+   }},
+  {id:'W20',mo:4,wom:3,label:'5월 3주',dates:'5/12~5/18',  event:'',             theme:'참외·키위 유지',
+   overrides:{
+     'z1772002356730':   {prod:'🍈 참외',               status:'planned'},
+     'z1772002422913': {prod:'🥝 키위',               status:'planned'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+   }},
+  {id:'W21',mo:4,wom:4,label:'5월 4주',dates:'5/19~5/25',  event:'',             theme:'수박 입고 준비',
+   overrides:{
+     'z1772002356730':   {prod:'🍈 참외',               status:'planned'},
+     'z1772002422913': {prod:'🥝 키위',               status:'planned'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '7간편과일':{prod:'🍉 수박 소포장 (준비)',status:'tbd', note:'6월 수박 시즌 준비'},
+   }},
+
+  // ══════════════════════════════════════════
+  // 6월 — 수박 메인 / 참외 유지 / 키위 유지
+  // 실적: 청과6485 수박939 참외823 토마토788 사과715 키위694
+  // → 수박 1번, 참외/키위 2번 자리 병행
+  // ══════════════════════════════════════════
+  {id:'W22',mo:5,wom:1,label:'6월 1주',dates:'5/26~6/1',   event:'🌞 초여름',   theme:'수박 메인 전환',
+   overrides:{
+     'z1772002356730':   {prod:'🍉 수박 ★메인 전환',   status:'planned', note:'참외→수박 전환'},
+     'z1772002422913': {prod:'🍈 참외',               status:'planned'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '6수입과일':{prod:'🥝 키위·망고',         status:'tbd'},
+   }},
+  {id:'W23',mo:5,wom:2,label:'6월 2주',dates:'6/2~6/8',    event:'',             theme:'수박 피크',
+   overrides:{
+     'z1772002356730':   {prod:'🍉 수박 ★피크',        status:'planned'},
+     'z1772002422913': {prod:'🍈 참외',               status:'planned'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '6수입과일':{prod:'🥭 망고 (TBD)',        status:'tbd'},
+   }},
+  {id:'W24',mo:5,wom:3,label:'6월 3주',dates:'6/9~6/15',   event:'',             theme:'수박·참외 강세',
+   overrides:{
+     'z1772002356730':   {prod:'🍉 수박',               status:'planned'},
+     'z1772002422913': {prod:'🍈 참외',               status:'planned'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '6수입과일':{prod:'🥝 키위·수입과일',     status:'tbd'},
+   }},
+  {id:'W25',mo:5,wom:4,label:'6월 4주',dates:'6/16~6/22',  event:'',             theme:'여름과일 유지',
+   overrides:{
+     'z1772002356730':   {prod:'🍉 수박',               status:'planned'},
+     'z1772002422913': {prod:'🍈 참외',               status:'planned'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+   }},
+  {id:'W26',mo:5,wom:5,label:'6월 5주',dates:'6/23~6/29',  event:'',             theme:'여름 성수기 진입',
+   overrides:{
+     'z1772002356730':   {prod:'🍉 수박',               status:'planned'},
+     'z1772002422913': {prod:'🍈 참외',               status:'planned'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+   }},
+
+  // ══════════════════════════════════════════
+  // 7월 — 수박 피크 / 복숭아 등장
+  // 실적: 청과6317 복숭아1312 수박819 사과723 토마토550 자두536
+  // → 복숭아 1312로 2번 자리! 수박 계속 1번
+  // ══════════════════════════════════════════
+  {id:'W27',mo:6,wom:1,label:'7월 1주',dates:'6/30~7/6',   event:'☀️ 여름 피크', theme:'수박·복숭아 병행',
+   overrides:{
+     'z1772002356730':   {prod:'🍉 수박 ★여름 피크',   status:'planned'},
+     'z1772002422913': {prod:'🍑 복숭아 ★등장',      status:'tbd', note:'7월 복숭아 실적 1312'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '6수입과일':{prod:'🍑 자두·복숭아',      status:'tbd'},
+   }},
+  {id:'W28',mo:6,wom:2,label:'7월 2주',dates:'7/7~7/13',   event:'',             theme:'복숭아 본격 시작',
+   overrides:{
+     'z1772002356730':   {prod:'🍉 수박',               status:'planned'},
+     'z1772002422913': {prod:'🍑 복숭아 ★',          status:'tbd'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '6수입과일':{prod:'🍒 자두',              status:'tbd'},
+   }},
+  {id:'W29',mo:6,wom:3,label:'7월 3주',dates:'7/14~7/20',  event:'',             theme:'수박·복숭아 피크',
+   overrides:{
+     'z1772002356730':   {prod:'🍉 수박',               status:'planned'},
+     'z1772002422913': {prod:'🍑 복숭아',             status:'tbd'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+   }},
+  {id:'W30',mo:6,wom:4,label:'7월 4주',dates:'7/21~7/27',  event:'',             theme:'여름 피크 유지',
+   overrides:{
+     'z1772002356730':   {prod:'🍉 수박',               status:'planned'},
+     'z1772002422913': {prod:'🍑 복숭아',             status:'tbd'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '6수입과일':{prod:'🍒 자두·체리',         status:'tbd'},
+   }},
+
+  // ══════════════════════════════════════════
+  // 8월 — 수박+복숭아 쌍두마차 / 자두·포도
+  // 실적: 청과7281 복숭아1670 수박745 포도745 사과722 자두645 토마토548
+  // → 복숭아 1670 최고! 1번 복숭아로 전환, 수박 2번
+  // ══════════════════════════════════════════
+  {id:'W31',mo:7,wom:1,label:'8월 1주',dates:'7/28~8/3',   event:'',             theme:'복숭아 메인 전환',
+   overrides:{
+     'z1772002356730':   {prod:'🍑 복숭아 ★메인',      status:'tbd', note:'8월 복숭아 실적 1670 최고'},
+     'z1772002422913': {prod:'🍉 수박',               status:'planned'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '6수입과일':{prod:'🍇 포도·자두',         status:'tbd'},
+   }},
+  {id:'W32',mo:7,wom:2,label:'8월 2주',dates:'8/4~8/10',   event:'',             theme:'복숭아 피크',
+   overrides:{
+     'z1772002356730':   {prod:'🍑 복숭아 ★피크',      status:'tbd'},
+     'z1772002422913': {prod:'🍉 수박',               status:'planned'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '6수입과일':{prod:'🍇 포도',              status:'tbd'},
+   }},
+  {id:'W33',mo:7,wom:3,label:'8월 3주',dates:'8/11~8/17',  event:'🌊 여름 절정', theme:'복숭아·포도 강세',
+   overrides:{
+     'z1772002356730':   {prod:'🍑 복숭아',             status:'tbd'},
+     'z1772002422913': {prod:'🍇 포도 ★등장',        status:'tbd'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '6수입과일':{prod:'🍒 자두·체리',         status:'tbd'},
+   }},
+  {id:'W34',mo:7,wom:4,label:'8월 4주',dates:'8/18~8/24',  event:'',             theme:'여름과일 마무리',
+   overrides:{
+     'z1772002356730':   {prod:'🍑 복숭아',             status:'tbd'},
+     'z1772002422913': {prod:'🍇 포도',               status:'tbd'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+   }},
+
+  // ══════════════════════════════════════════
+  // 9월 — 포도·추석 사과배 / 선물세트 피크
+  // 실적: 청과6261 선물세트876 사과723 배709 포도704 키위494
+  // → 추석 선물세트 최강, 사과·배 메인, 포도 병행
+  // ══════════════════════════════════════════
+  {id:'W35',mo:8,wom:1,label:'9월 1주',dates:'8/25~8/31',  event:'🍂 추석 준비', theme:'추석 선물세트 시작',
+   overrides:{
+     'z1772002356730':   {prod:'🍎 사과 ★추석 기획',   status:'tbd'},
+     'z1772002422913': {prod:'🍇 포도',               status:'tbd'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '4사과배': {prod:'🍐 배·사과 선물세트',   status:'tbd'},
+     '견과':    {prod:'🥜 추석 견과선물세트',  status:'tbd'},
+     '양곡':    {prod:'🌾 추석 양곡선물',      status:'tbd'},
+   }},
+  {id:'W36',mo:8,wom:2,label:'9월 2주',dates:'9/1~9/7',    event:'🎑 추석 연휴', theme:'추석 선물 피크',
+   overrides:{
+     'z1772002356730':   {prod:'🍎 사과 ★추석 피크',   status:'tbd'},
+     'z1772002422913': {prod:'🍇 포도 ★',            status:'tbd'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '4사과배': {prod:'🍐 배·사과 선물 ★',    status:'tbd'},
+     '견과':    {prod:'🥜 추석 견과선물 ★',   status:'tbd'},
+     '양곡':    {prod:'🌾 추석 양곡 ★',       status:'tbd'},
+     '6수입과일':{prod:'🍇 포도·선물과일',     status:'tbd'},
+   }},
+  {id:'W37',mo:8,wom:3,label:'9월 3주',dates:'9/8~9/14',   event:'',             theme:'추석 후 가을 정리',
+   overrides:{
+     'z1772002356730':   {prod:'🍎 사과',               status:'tbd'},
+     'z1772002422913': {prod:'🍇 포도',               status:'tbd'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '4사과배': {prod:'🍎 사과·배',            status:'tbd'},
+   }},
+  {id:'W38',mo:8,wom:4,label:'9월 4주',dates:'9/15~9/21',  event:'',             theme:'가을과일 유지',
+   overrides:{
+     'z1772002356730':   {prod:'🍎 사과',               status:'tbd'},
+     'z1772002422913': {prod:'🍇 포도',               status:'tbd'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+   }},
+
+  // ══════════════════════════════════════════
+  // 10월 — 사과·감 / 키위 뉴시즌
+  // 실적: 청과5378 사과1136 포도662 감652 토마토491 키위406
+  // → 사과 1번, 포도/감 2번
+  // ══════════════════════════════════════════
+  {id:'W39',mo:9,wom:1,label:'10월 1주',dates:'9/22~9/28', event:'🍂 가을',      theme:'사과·감 시즌',
+   overrides:{
+     'z1772002356730':   {prod:'🍎 사과 ★가을',        status:'tbd'},
+     'z1772002422913': {prod:'🍇 포도·감',            status:'tbd'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '4사과배': {prod:'🍎 사과·배',            status:'tbd'},
+   }},
+  {id:'W40',mo:9,wom:2,label:'10월 2주',dates:'9/29~10/5', event:'',             theme:'감 시즌 본격화',
+   overrides:{
+     'z1772002356730':   {prod:'🍎 사과',               status:'tbd'},
+     'z1772002422913': {prod:'🍊 감·단감',            status:'tbd'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+     '6수입과일':{prod:'🥝 키위 뉴시즌 (TBD)',status:'tbd', note:'10월 키위 뉴시즌 입고'},
+   }},
+  {id:'W41',mo:9,wom:3,label:'10월 3주',dates:'10/6~10/12',event:'',             theme:'사과·감 피크',
+   overrides:{
+     'z1772002356730':   {prod:'🍎 사과·감',            status:'tbd'},
+     'z1772002422913': {prod:'🍊 감·단감',            status:'tbd'},
+     '3감귤':   {prod:'🍅 토마토',             status:'planned'},
+   }},
+  {id:'W42',mo:9,wom:4,label:'10월 4주',dates:'10/13~10/19',event:'',            theme:'감귤 준비',
+   overrides:{
+     'z1772002356730':   {prod:'🍎 사과',               status:'tbd'},
+     'z1772002422913': {prod:'🍊 감',                 status:'tbd'},
+     '3감귤':   {prod:'🍅 토마토 / 감귤 준비', status:'tbd', note:'감귤 시즌 준비'},
+   }},
+
+  // ══════════════════════════════════════════
+  // 11월 — 감귤 메인 / 딸기 초도 / 한라봉 준비
+  // 실적: 청과4725 사과906 감602 감귤481 토마토444 포도408
+  // → 사과 유지, 감귤 점진 확대
+  // ══════════════════════════════════════════
+  {id:'W43',mo:10,wom:1,label:'11월 1주',dates:'10/20~10/26',event:'',           theme:'감귤 시즌 시작',
+   overrides:{
+     'z1772002356730':   {prod:'🍎 사과',               status:'tbd'},
+     'z1772002422913': {prod:'🍊 감',                 status:'tbd'},
+     '3감귤':   {prod:'🍊 제주감귤 ★시작',    status:'tbd', note:'감귤 시즌 개막'},
+   }},
+  {id:'W44',mo:10,wom:2,label:'11월 2주',dates:'10/27~11/2',event:'',            theme:'감귤 성장',
+   overrides:{
+     'z1772002356730':   {prod:'🍎 사과',               status:'tbd'},
+     'z1772002422913': {prod:'🍊 초기 만감류',        status:'tbd'},
+     '3감귤':   {prod:'🍊 제주감귤',           status:'tbd'},
+   }},
+  {id:'W45',mo:10,wom:3,label:'11월 3주',dates:'11/3~11/9', event:'',            theme:'감귤 확대·딸기 준비',
+   overrides:{
+     'z1772002356730':   {prod:'🍊 감귤 ★확대',        status:'tbd', note:'감귤 1번 자리 임시 확대'},
+     'z1772002422913': {prod:'🍊 만감류 초입',        status:'tbd'},
+     '3감귤':   {prod:'🍊 제주감귤 피크',      status:'tbd'},
+   }},
+  {id:'W46',mo:10,wom:4,label:'11월 4주',dates:'11/10~11/16',event:'',           theme:'딸기 초도 입고',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기 초도+🍊 감귤', status:'tbd', note:'딸기 초도물량 입고'},
+     'z1772002422913': {prod:'🍊 한라봉 초도',        status:'tbd'},
+     '3감귤':   {prod:'🍊 제주감귤',           status:'tbd'},
+   }},
+
+  // ══════════════════════════════════════════
+  // 12월 — 딸기·감귤·한라봉 / 크리스마스·연말
+  // 실적: 청과6171 딸기1336 감귤1060 사과790 토마토564 바나나369
+  // → 딸기 1번 복귀, 감귤 3번 강화, 한라봉 2번
+  // ══════════════════════════════════════════
+  {id:'W47',mo:11,wom:1,label:'12월 1주',dates:'11/17~11/23',event:'',           theme:'딸기·감귤 본격 병행',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기+🍊 감귤',      status:'planned'},
+     'z1772002422913': {prod:'🍊 한라봉·천혜향',      status:'planned'},
+     '3감귤':   {prod:'🍊 제주감귤',           status:'planned'},
+   }},
+  {id:'W48',mo:11,wom:2,label:'12월 2주',dates:'11/24~11/30',event:'',           theme:'딸기 성장·연말 준비',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기 ★성장',        status:'planned'},
+     'z1772002422913': {prod:'🍊 한라봉·천혜향',      status:'planned'},
+     '3감귤':   {prod:'🍊 제주감귤',           status:'planned'},
+     '견과':    {prod:'🥜 견과 연말선물세트',  status:'planned'},
+   }},
+  {id:'W49',mo:11,wom:3,label:'12월 3주',dates:'12/1~12/7', event:'🎄 크리스마스',theme:'크리스마스 기획전',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기 ★크리스마스',  status:'planned'},
+     'z1772002422913': {prod:'🍊 한라봉·천혜향',      status:'planned'},
+     '3감귤':   {prod:'🍊 제주감귤',           status:'planned'},
+     '냉동과일':{prod:'🫐 냉동 베리류',        status:'planned'},
+     '견과':    {prod:'🥜 견과 크리스마스선물',status:'planned'},
+   }},
+  {id:'W50',mo:11,wom:4,label:'12월 4주',dates:'12/8~12/14',event:'🎉 연말',     theme:'연말 피크',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기 ★연말 피크',   status:'planned'},
+     'z1772002422913': {prod:'🍊 한라봉·천혜향',      status:'planned'},
+     '3감귤':   {prod:'🍊 제주감귤',           status:'planned'},
+     '견과':    {prod:'🥜 견과 선물세트',      status:'planned'},
+   }},
+  {id:'W51',mo:11,wom:5,label:'12월 5주',dates:'12/15~12/21',event:'🎉 신년 전야',theme:'연말 정리·신년 준비',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기',               status:'planned'},
+     'z1772002422913': {prod:'🍊 한라봉·천혜향',      status:'planned'},
+     '3감귤':   {prod:'🍊 제주감귤',           status:'planned'},
+   }},
+  {id:'W52',mo:11,wom:6,label:'12월 6주',dates:'12/22~12/28',event:'🎉 연말',    theme:'연말 마무리',
+   overrides:{
+     'z1772002356730':   {prod:'🍓 딸기',               status:'planned'},
+     'z1772002422913': {prod:'🍊 한라봉·천혜향',      status:'planned'},
+     '3감귤':   {prod:'🍊 제주감귤',           status:'planned'},
+   }},
+];
+
+// userOverrides: {weekId: {zoneId: {prod, status, note}}}
+const userOverrides = {};
+
+// ═══════════ ZONES ═══════════
+const COLORS=[
+  {key:'cn1',bg:'#fff0f0',bc:'#f87171'},{key:'cn2',bg:'#fff5e6',bc:'#fb923c'},
+  {key:'cn3',bg:'#fffbe6',bc:'#fbbf24'},{key:'cn4',bg:'#f0fff4',bc:'#6ee7b7'},
+  {key:'cn5',bg:'#fef2f2',bc:'#fca5a5'},{key:'cn6',bg:'#eff6ff',bc:'#93c5fd'},
+  {key:'cn7',bg:'#f5f3ff',bc:'#c4b5fd'},{key:'cw',bg:'#fafaf5',bc:'#d4d4aa'},
+  {key:'cc',bg:'#e0f2fe',bc:'#7dd3fc'},{key:'cf',bg:'#fffde7',bc:'#fde047'},
+];
+let zones=[
+  // ══ 좌측 세로 아일랜드 (col 1~3, row 1~4) ══
+  {id:'견과',      name:'견과',            prod:'🥜 견과류',             type:'아일랜드',    pri:'',  note:'정월대보름 오곡밥·선물세트 이벤트', color:'cn3', col:1,row:1,cols:1,rows:4},
+  {id:'양곡',      name:'양곡',            prod:'🌾 양곡·잡곡',           type:'아일랜드',    pri:'',  note:'보름 이벤트 핵심',                color:'cw',  col:2,row:1,cols:1,rows:4},
+  {id:'버섯',      name:'버섯',            prod:'🍄 버섯류',             type:'아일랜드',    pri:'',  note:'',                               color:'cw',  col:3,row:1,cols:1,rows:4},
+  // ══ 상단 쇼케이스 (row 0) ══
+  {id:'건어물',    name:'건어물',           prod:'🐟 건어물',             type:'벽부',       pri:'',  note:'',                               color:'cw',  col:1,row:0,cols:2,rows:1},
+  {id:'친환경채소',name:'친환경채소',        prod:'🌿 친환경채소',          type:'냉장쇼케이스',pri:'',  note:'',                               color:'cc',  col:3,row:0,cols:2,rows:1},
+  {id:'한끼채소',  name:'한끼채소',          prod:'🥬 한끼채소',           type:'냉장쇼케이스',pri:'p2',note:'쇼케이스 전용',                    color:'cc',  col:5,row:0,cols:2,rows:1},
+  {id:'계란상단',  name:'계란',             prod:'🥚 계란',              type:'냉장',       pri:'',  note:'',                               color:'cc',  col:7,row:0,cols:2,rows:1},
+  {id:'콩나물',   name:'콩나물',            prod:'🌱 콩나물',             type:'냉장',       pri:'',  note:'',                               color:'cw',  col:9,row:0,cols:2,rows:1},
+  {id:'두부',     name:'두부',             prod:'🫘 두부·두유',           type:'냉장쇼케이스',pri:'',  note:'',                               color:'cc',  col:11,row:0,cols:2,rows:2},
+  // ══ row 1: 두부 중단 / 키위 / 수입과일 ══
+  {id:'계란중단',  name:'계란',             prod:'🥚 계란',              type:'냉장',       pri:'',  note:'',                               color:'cc',  col:5,row:1,cols:2,rows:1},
+  {id:'z1772002131054',name:'두부',        prod:'🫘 두부',              type:'냉장쇼케이스',pri:'',  note:'',                               color:'cw',  col:7,row:1,cols:2,rows:1},
+  {id:'8키위',    name:'키위',             prod:'🥝 키위',              type:'오픈냉장',    pri:'',  note:'',                               color:'cw',  col:9,row:1,cols:2,rows:1},
+  // ══ row 2: 토마토(고정) / 수입과일 / 사과배 ══
+  {id:'5토마토',  name:'토마토 (52주 고정)',  prod:'🍅 토마토벌크·스테비아·대주방울3종', type:'오픈냉장', pri:'p2', note:'도면 토마토벌크 고정 자리', color:'cn5', col:5,row:2,cols:2,rows:1},
+  {id:'6수입과일', name:'수입과일',           prod:'🍊 카라카라오렌지·골드키위·그린키위·레몬·자몽', type:'오픈냉장', pri:'p2', note:'', color:'cn6', col:7,row:2,cols:2,rows:1},
+  {id:'4사과배',  name:'사과·배',            prod:'🍎 사과박스·신고배박스·사과즙박스',    type:'오픈냉장', pri:'p2', note:'', color:'cn4', col:9,row:2,cols:2,rows:1},
+  // ══ row 3~4: 감귤세로존(3번) / 2순위 핵심 / 1순위 핵심 ══
+  // 3번 자리: 감귤 시즌(11~4월) → 비시즌 토마토·방울토마토로 교체
+  {id:'3감귤',    name:'③ 감귤·시즌교체',    prod:'🍊 3 하우스감귤박스·방울토마토',      type:'오픈냉장', pri:'p2', note:'감귤시즌:감귤 / 비시즌:방울토마토', color:'cn3', col:4,row:1,cols:1,rows:4},
+  // 2순위: 도면 노란구역 - 만감류박스·하우스감귤박스 → 시즌따라 교체
+  {id:'z1772002422913',name:'② (2순위) 핵심상품', prod:'🍊 만감류박스·하우스감귤박스',  type:'아일랜드', pri:'p2', note:'시즌전환: 만감류→오렌지→참외→수박·복숭아→포도·사과→감귤→만감류', color:'cn2', col:5,row:3,cols:3,rows:2},
+  // 1순위: 도면 하늘색 대형구역 - 만감류벌크(레드향·천혜향·한라봉) → 시즌따라 교체
+  {id:'z1772002356730',name:'① (1순위) 핵심상품', prod:'🍊 만감류벌크 (레드향·천혜향·한라봉)', type:'아일랜드', pri:'p1', note:'시즌전환: 만감류벌크→딸기→참외→수박→복숭아→포도→사과→감귤·딸기', color:'cn1', col:8,row:3,cols:3,rows:2},
+  // ══ 우측 냉장 (col 11) ══
+  {id:'샐러드',   name:'샐러드',            prod:'🥗 샐러드류',           type:'냉장',       pri:'',  note:'',                               color:'cc',  col:11,row:2,cols:2,rows:2},
+  {id:'냉동과일', name:'냉동과일',            prod:'🫐 냉동블루베리·냉동과일', type:'냉동',    pri:'',  note:'',                               color:'cc',  col:11,row:4,cols:2,rows:1},
+  // ══ 하단 row 5 ══
+  {id:'제주채소', name:'제주채소',            prod:'🥬 제주채소',           type:'벽부',       pri:'',  note:'',                               color:'cw',  col:1,row:5,cols:2,rows:1},
+  {id:'채소',    name:'채소',              prod:'🥦 채소·쌈채소',         type:'벽부',       pri:'',  note:'',                               color:'cw',  col:3,row:5,cols:2,rows:1},
+  {id:'7간편과일',name:'컵과일·간편과일',     prod:'🍱 컵과일·소스류·고급과일', type:'평대',   pri:'p2',note:'',                               color:'cn7', col:5,row:5,cols:2,rows:1},
+  {id:'입구',    name:'입구',              prod:'',                    type:'입구',       pri:'',  note:'매장 메인 입구',                    color:'ent', col:7,row:5,cols:4,rows:1},
+  {id:'바나나',   name:'바나나 (52주 고정)', prod:'🍌 스위트마운틴바나나', type:'입구옆고정',  pri:'pf', note:'52주 상시 고정',                   color:'cf',  col:11,row:5,cols:2,rows:1},
+];
+
+const CELL=114,ROW=68,GAP=4;
+const px=c=>c*(CELL+GAP);
+const py=r=>r*(ROW+GAP);
+
+let selId=null, editMode=true, resizing=null, dragId=null;
+let curWkIdx=0, curMonthIdx=0;
+
+// ═══════════ UTILS ═══════════
+function getSeasonBadge(zoneId, prod){
+  if(!prod) return null;
+  const p = prod.toLowerCase();
+  // 1번 자리 (시즌 핵심)
+  if(zoneId==='z1772002356730'){
+    if(p.includes('딸기')) return {cls:'sb-winter',label:'🍓 딸기 시즌'};
+    if(p.includes('참외')) return {cls:'sb-spring',label:'🍈 참외 시즌'};
+    if(p.includes('수박')) return {cls:'sb-summer',label:'🍉 수박 시즌'};
+    if(p.includes('복숭아')) return {cls:'sb-summer',label:'🍑 복숭아 시즌'};
+    if(p.includes('포도')) return {cls:'sb-fall',label:'🍇 포도 시즌'};
+    if(p.includes('사과')||p.includes('감')) return {cls:'sb-fall',label:'🍎 사과·감 시즌'};
+    if(p.includes('감귤')) return {cls:'sb-winter',label:'🍊 감귤 확대'};
+  }
+  // 2번 자리 (보조 청과)
+  if(zoneId==='z1772002422913'){
+    if(p.includes('한라봉')||p.includes('천혜향')||p.includes('래드향')||p.includes('만감')) return {cls:'sb-winter',label:'🍊 만감류 시즌'};
+    if(p.includes('오렌지')) return {cls:'sb-spring',label:'🍊 오렌지 시즌'};
+    if(p.includes('키위')) return {cls:'sb-spring',label:'🥝 키위 피크'};
+    if(p.includes('복숭아')) return {cls:'sb-summer',label:'🍑 복숭아 피크'};
+    if(p.includes('포도')) return {cls:'sb-fall',label:'🍇 포도 시즌'};
+    if(p.includes('감')) return {cls:'sb-fall',label:'🍊 감 시즌'};
+    if(p.includes('수박')) return {cls:'sb-summer',label:'🍉 수박 병행'};
+  }
+  // 3번 자리 (감귤/토마토 교체)
+  if(zoneId==='3감귤'){
+    if(p.includes('감귤')) return {cls:'sb-winter',label:'🍊 감귤 시즌'};
+    if(p.includes('방울')||p.includes('토마토')) return {cls:'sb-spring',label:'🍅 비시즌→방울토마토'};
+  }
+  // 2번 자리 세부
+  if(zoneId==='z1772002422913'){
+    if(p.includes('만감류')) return {cls:'sb-winter',label:'🍊 만감류 시즌'};
+    if(p.includes('감귤')||p.includes('하우스')) return {cls:'sb-winter',label:'🍊 하우스감귤'};
+    if(p.includes('오렌지')||p.includes('카라카라')) return {cls:'sb-spring',label:'🍊 오렌지 피크'};
+    if(p.includes('키위')) return {cls:'sb-spring',label:'🥝 키위 피크'};
+    if(p.includes('참외')) return {cls:'sb-summer',label:'🍈 참외 병행'};
+    if(p.includes('수박')) return {cls:'sb-summer',label:'🍉 수박 병행'};
+    if(p.includes('복숭아')||p.includes('자두')) return {cls:'sb-summer',label:'🍑 복숭아·자두'};
+    if(p.includes('포도')) return {cls:'sb-fall',label:'🍇 포도 시즌'};
+    if(p.includes('감')||p.includes('단감')) return {cls:'sb-fall',label:'🍊 감·단감'};
+  }
+  return null;
+}
+
+function priLbl(p,z){
+  if(p==='__custom__') return z?.priLabel||'커스텀';
+  return{p1:'★ 1순위',p2:'2순위',pe:'이벤트',pf:'★ 고정'}[p]||'';
+}
+
+function getWkData(wkId){
+  const w = WEEKS.find(x=>x.id===wkId);
+  if(!w) return {};
+  const base = w.overrides||{};
+  const user = userOverrides[wkId]||{};
+  const merged = {};
+  // Merge: user overrides take priority
+  [...Object.keys(base),...Object.keys(user)].forEach(zid=>{
+    merged[zid] = {...(base[zid]||{}), ...(user[zid]||{})};
+  });
+  return merged;
+}
+
+function getCurWkId(){ return WEEKS[curWkIdx]?.id||'W01'; }
+function getCurWk(){ return WEEKS[curWkIdx]; }
+
+function getTodayWkIdx(){
+  const now = new Date();
+  const y = now.getFullYear();
+  const mo = now.getMonth()+1; // 1-based
+  const d = now.getDate();
+  // Find best matching week
+  for(let i=0;i<WEEKS.length;i++){
+    const w = WEEKS[i];
+    // Parse dates string e.g. "1/5~1/11"
+    const [s,e] = w.dates.split('~');
+    const [sm,sd] = s.split('/').map(Number);
+    const [em,ed] = e.split('/').map(Number);
+    // Approximate match: check if current month/day is in range
+    const startPastMidYear = sm>6 && mo<=2; // Dec dates in Jan range
+    const endPastMidYear   = em<sm; // date range crosses year end
+    let inRange = false;
+    if(endPastMidYear){
+      inRange = (mo===sm&&d>=sd)||(mo===em&&d<=ed)||(mo>sm||mo<em);
+    } else {
+      inRange = (mo===sm&&d>=sd&&(mo<em||(mo===em&&d<=ed)))||(mo>sm&&mo<em)||(mo===em&&d<=ed);
+    }
+    if(inRange) return i;
+  }
+  return 0;
+}
+
+// ═══════════ NAV RENDER ═══════════
+function renderNav(){
+  const w = getCurWk();
+  if(!w) return;
+
+  // Top row
+  document.getElementById('navBadge').textContent = w.id;
+  document.getElementById('navTitle').textContent = w.label;
+  document.getElementById('navDates').textContent = w.dates;
+  const evEl = document.getElementById('navEvent');
+  if(w.event){evEl.style.display='';evEl.textContent=w.event;}else evEl.style.display='none';
+  document.getElementById('navTheme').textContent = w.theme;
+  document.getElementById('btnPrev').disabled = curWkIdx===0;
+  document.getElementById('btnNext').disabled = curWkIdx===WEEKS.length-1;
+
+  // Month tabs
+  document.getElementById('navMonths').innerHTML = MONTHS.map(m=>{
+    const hasEvent = WEEKS.some(wk=>wk.mo===m.idx&&wk.event);
+    return `<button class="mo-tab${curMonthIdx===m.idx?' active':''}" onclick="jumpToMonth(${m.idx})">
+      ${m.label}${hasEvent?'<span class="mo-event-dot"></span>':''}
+    </button>`;
+  }).join('');
+
+  // Week buttons for current month
+  const monthWeeks = WEEKS.filter(wk=>wk.mo===curMonthIdx);
+  document.getElementById('navWeeks').innerHTML = monthWeeks.map(wk=>{
+    const isCur = wk.id===getCurWkId();
+    const hasEvent = !!wk.event;
+    const hasUser = userOverrides[wk.id]&&Object.keys(userOverrides[wk.id]).length>0;
+    const cls = ['wk-btn',isCur?'active':'',hasEvent?'has-event':'',hasUser?'confirmed':''].filter(Boolean).join(' ');
+    return `<button class="${cls}" onclick="goWeekById('${wk.id}')">
+      <span class="wk-btn-label">${wk.wom}주</span>
+      <span class="wk-btn-sub">${wk.dates}</span>
+      ${wk.event?`<span style="font-size:9px;margin-top:1px">${wk.event}</span>`:''}
+    </button>`;
+  }).join('');
+
+  // Season summary bar
+  renderSeasonSummary(w);
+}
+
+function renderSeasonSummary(w){
+  const allOvr = {...(w.overrides||{}),...(userOverrides[w.id]||{})};
+  const k1 = allOvr['z1772002356730']?.prod || zones.find(z=>z.id==='z1772002356730')?.prod || '';
+  const k2 = allOvr['z1772002422913']?.prod || zones.find(z=>z.id==='z1772002422913')?.prod || '';
+  const k3 = allOvr['3감귤']?.prod || zones.find(z=>z.id==='3감귤')?.prod || '';
+  const k5 = allOvr['5토마토']?.prod || zones.find(z=>z.id==='5토마토')?.prod || '🍅 토마토벌크·스테비아·대주방울3종 (52주 고정)';
+  const existingBar = document.getElementById('seasonSummary');
+  const bar = existingBar || document.createElement('div');
+  if(!existingBar){
+    bar.id='seasonSummary';
+    bar.style.cssText='padding:5px 14px;background:#f8f7f4;border-bottom:1px solid var(--border);display:flex;gap:18px;flex-wrap:wrap;flex-shrink:0;';
+    document.getElementById('navWeeks').parentElement.appendChild(bar);
+  }
+  bar.innerHTML = `
+    <span style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;align-self:center">이번 주 핵심 배치 →</span>
+    <span style="font-size:11px;font-weight:700;padding:3px 8px;background:#fef2f2;border-radius:4px;border:1px solid #fca5a5">① 1순위: <strong style="color:var(--red)">${k1}</strong></span>
+    <span style="font-size:11px;font-weight:700;padding:3px 8px;background:#fff5e6;border-radius:4px;border:1px solid #fb923c">② 2순위: <strong style="color:var(--orange)">${k2}</strong></span>
+    <span style="font-size:11px;font-weight:700;padding:3px 8px;background:#fffbe6;border-radius:4px;border:1px solid #fbbf24">③ 감귤존: <strong style="color:#92400e">${k3}</strong></span>
+    <span style="font-size:11px;font-weight:700;padding:3px 8px;background:#f0fff4;border-radius:4px;border:1px solid #6ee7b7">토마토 고정: <strong style="color:var(--green)">${k5}</strong></span>
+    <span style="font-size:10px;color:var(--muted);margin-left:auto">🍌 바나나 52주 고정</span>
+  `;
+}
+
+function goWeekById(id){
+  const idx = WEEKS.findIndex(w=>w.id===id);
+  if(idx>=0) goWeek(idx);
+}
+function goWeek(idx){
+  curWkIdx=idx;
+  curMonthIdx=WEEKS[idx].mo;
+  selId=null;
+  renderNav();render();renderPanel();
+}
+function prevWeek(){if(curWkIdx>0)goWeek(curWkIdx-1);}
+function nextWeek(){if(curWkIdx<WEEKS.length-1)goWeek(curWkIdx+1);}
+function goToday(){goWeek(getTodayWkIdx());}
+function jumpToMonth(mi){
+  curMonthIdx=mi;
+  // Go to first week of that month if not already there
+  const firstWk = WEEKS.findIndex(w=>w.mo===mi);
+  if(firstWk>=0){
+    curWkIdx=firstWk;
+    selId=null;
+  }
+  renderNav();render();renderPanel();
+}
+
+// ═══════════ CANVAS RENDER ═══════════
+function render(){
+  const gc=document.getElementById('gc');
+  gc.innerHTML='';
+  const maxC=Math.max(...zones.map(z=>z.col+z.cols),14);
+  const maxR=Math.max(...zones.map(z=>z.row+z.rows),6);
+  gc.style.width=(maxC*(CELL+GAP)+GAP+16)+'px';
+  gc.style.height=(maxR*(ROW+GAP)+GAP+16)+'px';
+
+  if(editMode){
+    for(let r=0;r<maxR+2;r++) for(let c=0;c<maxC+2;c++){
+      const dc=document.createElement('div');
+      dc.className='drop-cell';
+      dc.dataset.col=c;dc.dataset.row=r;
+      dc.style.cssText=`position:absolute;left:${px(c)+8}px;top:${py(r)+8}px;width:${CELL}px;height:${ROW}px;`;
+      dc.addEventListener('dragover',e=>{e.preventDefault();dc.classList.add('over');});
+      dc.addEventListener('dragleave',()=>dc.classList.remove('over'));
+      dc.addEventListener('drop',onDrop);
+      gc.appendChild(dc);
+    }
+  }
+
+  const wkOvr = getWkData(getCurWkId());
+
+  zones.forEach(z=>{
+    const el=document.createElement('div');
+    el.id='z-'+z.id;
+    el.className='zb'+(z.id===selId?' sel':'');
+    if(z.color==='ent') el.classList.add('ent-block');
+    const col=COLORS.find(c=>c.key===z.color);
+    if(col){el.style.background=col.bg;el.style.borderColor=col.bc;}
+    el.style.left=(px(z.col)+8)+'px';
+    el.style.top=(py(z.row)+8)+'px';
+    el.style.width=(z.cols*CELL+(z.cols-1)*GAP)+'px';
+    el.style.height=(z.rows*ROW+(z.rows-1)*GAP)+'px';
+
+    if(z.color==='ent'){
+      el.innerHTML=`<div style="font-size:18px">↑</div><div>${z.name}</div><div class="ent-sub">${z.note}</div>`;
+    } else {
+      const ovr = wkOvr[z.id];
+      const dispProd = ovr?.prod||z.prod||'';
+      const status = ovr?.status||'';
+      const hasOvr = !!ovr;
+      const num=z.id.match(/^(\d)/)?z.id.charAt(0):'';
+      const statusHtml = hasOvr && status
+        ? `<span class="zstatus ${status==='confirmed'?'zs-conf':status==='tbd'?'zs-tbd':'zs-plan'}">${status==='confirmed'?'✅확정':status==='tbd'?'❓미정':'📋예정'}</span>`
+        :'';
+      // Season badge for key zone
+      const seasonBadge = getSeasonBadge(z.id, dispProd);
+      const prodClass = hasOvr ? (ovr.status==='confirmed'?' season-main':' changed') : '';
+      el.innerHTML=`<div class="zi">
+        ${z.pri?`<div class="zpri ${z.pri==="__custom__"?"pe":z.pri}">${priLbl(z.pri,z)}</div>`:''}
+        ${num?`<div class="znum">${num}</div>`:''}
+        ${seasonBadge?`<div class="season-badge ${seasonBadge.cls}">${seasonBadge.label}</div>`:''}
+        <div class="ztype">${z.type}</div>
+        <div class="zname">${z.name}</div>
+        <div class="zprod${prodClass}">${dispProd}</div>
+        ${ovr?.note?`<div class="znote">${ovr.note}</div>`:''}
+        ${statusHtml}
+      </div>
+      ${editMode?`<div class="rh rh-e" data-id="${z.id}" data-d="e"></div><div class="rh rh-s" data-id="${z.id}" data-d="s"></div><div class="rh rh-se" data-id="${z.id}" data-d="se"></div>`:''}`;
+    }
+
+    if(editMode){
+      el.draggable=true;
+      el.addEventListener('dragstart',onDS);
+      el.addEventListener('click',e=>{e.stopPropagation();selZone(z.id);});
+      el.querySelectorAll('.rh').forEach(h=>h.addEventListener('mousedown',onRS));
+    } else {
+      el.style.cursor='default';
+      el.addEventListener('click',e=>{e.stopPropagation();selZone(z.id);});
+    }
+    gc.appendChild(el);
+  });
+}
+
+// ═══════════ SELECT & PANEL ═══════════
+function selZone(id){
+  selId=id; render(); renderPanel();
+  const z=zones.find(x=>x.id===id);
+  if(z) document.getElementById('tbHint').textContent=`선택: ${z.name} — ${getCurWk()?.label}`;
+}
+document.getElementById('gc').addEventListener('click',()=>{
+  selId=null;render();
+  document.getElementById('rpEmp').style.display='';
+  document.getElementById('rpEdit').style.display='none';
+});
+
+function renderPanel(){
+  const z=zones.find(x=>x.id===selId);
+  if(!z){document.getElementById('rpEmp').style.display='';document.getElementById('rpEdit').style.display='none';return;}
+  document.getElementById('rpEmp').style.display='none';
+  document.getElementById('rpEdit').style.display='';
+
+  // ① 제목 input (굵은 글씨 수정)
+  document.getElementById('rpTitle').value=z.name;
+  document.getElementById('wkProdLabel').textContent='\u{1F4C5} '+getCurWk()?.label+' 배치 상품';
+
+  // 이번 주 오버라이드
+  const wkOvr=getWkData(getCurWkId());
+  const ovr=wkOvr[z.id]||{};
+  document.getElementById('wkProdInp').value=ovr.prod||z.prod||'';
+  document.getElementById('wkStatus').value=ovr.status||'planned';
+  document.getElementById('wkNoteInp').value=ovr.note||'';
+
+  document.getElementById('eP').value=z.prod;
+
+  // ④ 우선순위 — 커스텀 체크
+  const knownPris=['','p1','p2','pe','pf'];
+  const priSel=document.getElementById('ePr');
+  if(knownPris.includes(z.pri)){
+    priSel.value=z.pri;
+    document.getElementById('priCustomWrap').style.display='none';
+  } else {
+    priSel.value='__custom__';
+    document.getElementById('priCustomWrap').style.display='';
+    document.getElementById('priCustom').value=z.priLabel||z.pri||'';
+  }
+
+  // ⑤ 설비 유형 — 커스텀 체크
+  const knownTypes=['오픈냉장','냉장쇼케이스','냉동','아일랜드','벽부','평대','입구옆고정','수직선반','냉장평대','상온평대'];
+  const tySel=document.getElementById('eTy');
+  if(knownTypes.includes(z.type)){
+    tySel.value=z.type;
+    document.getElementById('tyCustomWrap').style.display='none';
+  } else {
+    tySel.value='__custom__';
+    document.getElementById('tyCustomWrap').style.display='';
+    document.getElementById('tyCustom').value=z.type||'';
+  }
+
+  document.getElementById('eNo').value=z.note||'';
+  document.getElementById('eCols').value=z.cols;
+  document.getElementById('eRows').value=z.rows;
+  document.getElementById('eId').value=z.id;
+
+  document.getElementById('colorGrid').innerHTML=COLORS.map(c=>
+    '<div class="col-opt'+(z.color===c.key?' sel':'')+'" style="background:'+c.bg+';border-color:'+c.bc+'" onclick="upd(\'color\',\''+c.key+'\')"></div>'
+  ).join('');
+}
+
+function onPriChange(v){
+  if(v==='__custom__'){
+    document.getElementById('priCustomWrap').style.display='';
+    document.getElementById('priCustom').focus();
+  } else {
+    document.getElementById('priCustomWrap').style.display='none';
+    upd('pri',v);
+    const z=zones.find(x=>x.id===selId);
+    if(z) delete z.priLabel;
+  }
+}
+
+function onTypeChange(v){
+  if(v==='__custom__'){
+    document.getElementById('tyCustomWrap').style.display='';
+    document.getElementById('tyCustom').focus();
+  } else {
+    document.getElementById('tyCustomWrap').style.display='none';
+    upd('type',v);
+  }
+}
+
+function updId(newId){
+  const z=zones.find(x=>x.id===selId);
+  if(!z||!newId.trim())return;
+  const oldId=z.id;
+  z.id=newId.trim();
+  selId=newId.trim();
+  // update any week overrides that reference old id
+  Object.values(userOverrides).forEach(wk=>{
+    if(wk[oldId]){wk[newId.trim()]=wk[oldId];delete wk[oldId];}
+  });
+  render();
+}
+
+function applyWkProd(){
+  if(!selId) return;
+  const wkId=getCurWkId();
+  if(!userOverrides[wkId]) userOverrides[wkId]={};
+  userOverrides[wkId][selId]={
+    prod:document.getElementById('wkProdInp').value,
+    status:document.getElementById('wkStatus').value,
+    note:document.getElementById('wkNoteInp').value,
+  };
+  render();renderNav();
+  showToast(`✅ ${getCurWk()?.label} "${zones.find(z=>z.id===selId)?.name}" 적용!`);
+}
+
+function upd(f,v){
+  const z=zones.find(x=>x.id===selId);if(!z)return;
+  if(f==='cols')v=Math.max(1,Math.min(9,+v));
+  if(f==='rows')v=Math.max(1,Math.min(7,+v));
+  // priLabel: store custom label text, show on zone
+  if(f==='priLabel'){z.priLabel=v;z.pri='__custom__';render();return;}
+  z[f]=v;
+  render();
+  // re-render panel selectively (don't call full renderPanel to avoid focus loss)
+  if(f==='color'){
+    document.getElementById('colorGrid').innerHTML=COLORS.map(c=>
+      '<div class="col-opt'+(z.color===c.key?' sel':'')+'" style="background:'+c.bg+';border-color:'+c.bc+'" onclick="upd(\'color\',\''+c.key+'\')"></div>'
+    ).join('');
+  }
+}
+
+// ═══════════ DRAG & RESIZE ═══════════
+function onDS(e){
+  dragId=e.currentTarget.id.replace('z-','');
+  e.dataTransfer.setData('text/plain',dragId);
+  e.dataTransfer.effectAllowed='move';
+  setTimeout(()=>e.currentTarget.classList.add('dragging'),0);
+}
+document.addEventListener('dragend',()=>{
+  document.querySelectorAll('.dragging').forEach(el=>el.classList.remove('dragging'));
+  document.querySelectorAll('.over').forEach(el=>el.classList.remove('over'));
+});
+function onDrop(e){
+  e.preventDefault();
+  const cell=e.currentTarget;cell.classList.remove('over');
+  const z=zones.find(x=>x.id===dragId);if(!z)return;
+  z.col=Math.max(0,+cell.dataset.col);
+  z.row=Math.max(0,+cell.dataset.row);
+  selZone(dragId);render();
+  showToast('📍 '+z.name+' 이동');
+}
+function onRS(e){
+  e.preventDefault();e.stopPropagation();
+  const id=e.currentTarget.dataset.id,dir=e.currentTarget.dataset.d;
+  const z=zones.find(x=>x.id===id);
+  resizing={id,dir,sx:e.clientX,sy:e.clientY,sc:z.cols,sr:z.rows};
+  document.addEventListener('mousemove',onRM);document.addEventListener('mouseup',onRE);
+}
+function onRM(e){
+  if(!resizing)return;const z=zones.find(x=>x.id===resizing.id);
+  const dc=Math.round((e.clientX-resizing.sx)/(CELL+GAP));
+  const dr=Math.round((e.clientY-resizing.sy)/(ROW+GAP));
+  if(resizing.dir==='e'||resizing.dir==='se')z.cols=Math.max(1,Math.min(9,resizing.sc+dc));
+  if(resizing.dir==='s'||resizing.dir==='se')z.rows=Math.max(1,Math.min(7,resizing.sr+dr));
+  render();
+}
+function onRE(){resizing=null;document.removeEventListener('mousemove',onRM);document.removeEventListener('mouseup',onRE);renderPanel();}
+
+// ═══════════ TOOLBAR ═══════════
+function resizeSel(dc,dr){const z=zones.find(x=>x.id===selId);if(!z)return showToast('먼저 구역 선택');z.cols=Math.max(1,Math.min(9,z.cols+dc));z.rows=Math.max(1,Math.min(7,z.rows+dr));render();renderPanel();}
+function moveSel(dc,dr){const z=zones.find(x=>x.id===selId);if(!z)return showToast('먼저 구역 선택');z.col=Math.max(0,z.col+dc);z.row=Math.max(0,z.row+dr);render();renderPanel();}
+function deleteSel(){
+  if(!selId)return showToast('먼저 구역 선택');
+  if(!confirm(`'${zones.find(z=>z.id===selId)?.name}' 삭제?`))return;
+  zones=zones.filter(z=>z.id!==selId);selId=null;render();
+  document.getElementById('rpEmp').style.display='';document.getElementById('rpEdit').style.display='none';
+  showToast('🗑 삭제 완료');
+}
+
+// ═══════════ ADD / MODE / SAVE ═══════════
+function openAddModal(){document.getElementById('addModal').classList.add('open');}
+function closeModal(){document.getElementById('addModal').classList.remove('open');}
+function addZone(){
+  const name=document.getElementById('mN').value.trim();if(!name)return showToast('구역명 입력');
+  const id='z'+Date.now();
+  zones.push({id,name,prod:document.getElementById('mP').value.trim(),type:document.getElementById('mT').value,pri:document.getElementById('mPr').value,note:'',color:'cw',col:0,row:6,cols:2,rows:1});
+  closeModal();selZone(id);render();showToast(`✅ '${name}' 추가`);
+  document.getElementById('mN').value='';document.getElementById('mP').value='';
+}
+function toggleMode(){
+  editMode=!editMode;
+  document.getElementById('modeTag').textContent=editMode?'✏️ 편집':'👁 보기';
+  document.getElementById('modeTag').className='badge '+(editMode?'b-edit':'b-view');
+  document.getElementById('toolbar').style.display=editMode?'flex':'none';
+  render();
+}
+function saveAll(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify({zones,userOverrides},null,2)],{type:'application/json'}));
+  a.download='강서점_농산_2026플랜.json';a.click();
+  showToast('💾 저장 완료!');
+}
+function loadJSON(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(data.zones&&Array.isArray(data.zones)){
+        zones=data.zones;
+        if(data.userOverrides){
+          Object.assign(userOverrides,data.userOverrides);
+        }
+        selId=null;
+        render();renderPanel();renderNav();
+        showToast('📂 JSON 불러오기 완료! '+zones.length+'개 구역');
+      } else {
+        showToast('❌ 올바른 JSON 형식이 아닙니다');
+      }
+    } catch(err){
+      showToast('❌ JSON 파싱 오류: '+err.message);
+    }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+function resetLayout(){if(!confirm('초기화할까요?'))return;location.reload();}
+
+// ═══════════ KEYBOARD ═══════════
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT') return;
+  if(e.key==='ArrowLeft'&&e.altKey){e.preventDefault();prevWeek();return;}
+  if(e.key==='ArrowRight'&&e.altKey){e.preventDefault();nextWeek();return;}
+  if(!selId)return;
+  if(e.key==='ArrowLeft'){e.preventDefault();moveSel(-1,0);}
+  if(e.key==='ArrowRight'){e.preventDefault();moveSel(1,0);}
+  if(e.key==='ArrowUp'){e.preventDefault();moveSel(0,-1);}
+  if(e.key==='ArrowDown'){e.preventDefault();moveSel(0,1);}
+  if(e.key==='Delete'||e.key==='Backspace')deleteSel();
+});
+
+// ═══════════ TOAST ═══════════
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ═══════════ AI ═══════════
+let aiHistArr=[];
+function openAI(){document.getElementById('aiPanel').classList.add('open');document.getElementById('aiFloat').classList.add('hidden');setTimeout(()=>document.getElementById('aiInp').focus(),300);}
+function closeAI(){document.getElementById('aiPanel').classList.remove('open');document.getElementById('aiFloat').classList.remove('hidden');}
+
+async function doAsk(){
+  const inp=document.getElementById('aiInp');
+  const product=inp.value.trim();if(!product)return;
+  const btn=document.getElementById('aiGo');
+  btn.disabled=true;btn.textContent='분석 중...';
+  const body=document.getElementById('aiBody');
+  body.innerHTML='<div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span style="margin-left:7px">현재 도면+시즌 분석 중...</span></div>';
+
+  const curWk=getCurWk();
+  const wkOvr=getWkData(getCurWkId());
+  const zoneCtx=zones.map(z=>{
+    const ovr=wkOvr[z.id];
+    return `[${z.id}] ${z.name}(${z.type}) 현재:"${ovr?.prod||z.prod||'없음'}"`;
+  }).join('\n');
+
+  const prompt=`당신은 마트 농산 MD 전문가입니다.
+현재 주차: ${curWk?.label} (${curWk?.dates}), 테마: ${curWk?.theme}
+신상품: "${product}"
+
+현재 구역 배치:
+${zoneCtx}
+
+이 신상품 최적 배치 구역 TOP3를 JSON으로만 응답:
+{"product":"${product}","recommendations":[{"rank":1,"zoneId":"구역id","zoneName":"구역이름","reason":"이유25자","strategy":"전략35자","score":95},{"rank":2,"zoneId":"구역id","zoneName":"구역이름","reason":"이유","strategy":"전략","score":80},{"rank":3,"zoneId":"구역id","zoneName":"구역이름","reason":"이유","strategy":"전략","score":65}]}`;
+
+  let result=null;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:700,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    result=JSON.parse((data.content?.[0]?.text||'').replace(/```json|```/g,'').trim());
+  }catch{result=fallbackRec(product);}
+
+  renderAIResult(result,product);
+  if(!aiHistArr.includes(product))aiHistArr.unshift(product);
+  if(aiHistArr.length>8)aiHistArr.pop();
+  btn.disabled=false;btn.textContent='추천받기 ✨';
+}
+
+function renderAIResult(data,product){
+  const body=document.getElementById('aiBody');
+  const recs=data.recommendations||[];
+  const badges=['ab1','ab2','ab3'],labels=['🥇 최우선','🥈 차선','🥉 대안'];
+  body.innerHTML=
+    `<div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px">"<strong style="color:rgba(255,255,255,.85)">${product}</strong>" — ${getCurWk()?.label} 배치 추천</div>`+
+    `<div class="ai-cards">${recs.map((r,i)=>
+      `<div class="ai-card${i===0?' rank1':''}" onclick="hlZone('${r.zoneId}')">
+        <div><span class="ai-badge ${badges[i]}">${labels[i]}</span></div>
+        <div class="ai-card-zone">${r.zoneName}</div>
+        <div class="ai-card-why">📍 ${r.reason}</div>
+        <div class="ai-card-strat">💡 ${r.strategy}</div>
+        <button class="ai-apply" onclick="event.stopPropagation();applyRec('${r.zoneId}','${product.replace(/['"]/g,'')}')">✅ 이 자리에 배치</button>
+      </div>`).join('')}</div>`+
+    `<div class="ai-hist" id="aiHist"></div>`;
+  renderAIHist();
+}
+
+function renderAIHist(){
+  const el=document.getElementById('aiHist');if(!el||!aiHistArr.length)return;
+  el.innerHTML=`<span class="ai-hl">최근:</span>`+aiHistArr.map(h=>`<button class="ai-chip" onclick="document.getElementById('aiInp').value='${h.replace(/'/g,"\\'")}';doAsk()">${h}</button>`).join('');
+}
+
+function hlZone(id){
+  selZone(id);
+  const el=document.getElementById('z-'+id);
+  if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('hl');setTimeout(()=>el.classList.remove('hl'),1900);}
+}
+function applyRec(zoneId,product){
+  const z=zones.find(x=>x.id===zoneId);if(!z)return;
+  if(!confirm(`"${product}"을\n"${z.name}" 구역에 배치할까요?\n(${getCurWk()?.label})`))return;
+  const wkId=getCurWkId();
+  if(!userOverrides[wkId])userOverrides[wkId]={};
+  userOverrides[wkId][zoneId]={prod:'🆕 '+product,status:'planned',note:'신상품 입고'};
+  render();renderNav();selZone(zoneId);
+  showToast(`✅ "${product}" → ${z.name}`);
+  closeAI();
+}
+
+function fallbackRec(product){
+  const p=product.toLowerCase();
+  let recs;
+  if(p.includes('딸기')||p.includes('블루베리'))recs=[{rank:1,zoneId:'1딸기',zoneName:'1번 딸기·블루베리',reason:'베리류 전용 구역',strategy:'기존 딸기 존 확대 병행',score:96},{rank:2,zoneId:'2한라봉',zoneName:'2번 한라봉',reason:'입구 인접 고노출',strategy:'시즌 핵심 입구 승격',score:78},{rank:3,zoneId:'샐러드',zoneName:'샐러드',reason:'냉장 구역 인접',strategy:'냉장 케이스 신선 강조',score:60}];
+  else if(p.includes('한라봉')||p.includes('천혜향')||p.includes('감귤')||p.includes('오렌지'))recs=[{rank:1,zoneId:'2한라봉',zoneName:'2번 한라봉',reason:'만감류 전용 구역',strategy:'기존 만감류 존 확대',score:95},{rank:2,zoneId:'3감귤',zoneName:'3번 감귤',reason:'감귤류 인접 카테고리',strategy:'감귤 존 옆 신규 POP',score:80},{rank:3,zoneId:'6수입과일',zoneName:'6번 수입과일',reason:'수입 감귤 프리미엄',strategy:'수입과일 존 프리미엄 라인',score:68}];
+  else if(p.includes('참외')||p.includes('수박'))recs=[{rank:1,zoneId:'1딸기',zoneName:'1번 딸기',reason:'시즌 핵심 구역 교체',strategy:'봄여름 시즌 전환 배치',score:92},{rank:2,zoneId:'7간편과일',zoneName:'7번 간편과일',reason:'소포장 테스트 적합',strategy:'소포장 간편과일 코너',score:76},{rank:3,zoneId:'4사과배',zoneName:'4번 사과·배',reason:'국산 과일 존 인접',strategy:'봄과일 존으로 전환',score:62}];
+  else recs=[{rank:1,zoneId:'6수입과일',zoneName:'6번 수입과일',reason:'신규 프리미엄 상품 적합',strategy:'수입과일 존 신규 POP 배치',score:80},{rank:2,zoneId:'4사과배',zoneName:'4번 사과·배',reason:'국산 과일 카테고리',strategy:'국산 과일 존 병행',score:68},{rank:3,zoneId:'7간편과일',zoneName:'7번 간편과일',reason:'소포장 테스트 최적',strategy:'소포장 소량 테스트 후 확대',score:60}];
+  return{product,recommendations:recs};
+}
+
+// ═══════════ INIT ═══════════
+curWkIdx = getTodayWkIdx();
+curMonthIdx = WEEKS[curWkIdx].mo;
+renderNav();
+render();
+</script>
+</body>
+</html>
